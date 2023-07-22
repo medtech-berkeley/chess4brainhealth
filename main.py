@@ -3,13 +3,52 @@ import random
 import berserk
 from stockfish import Stockfish
 import chess
+import chess.engine
 
 
 session = berserk.TokenSession("lip_RkiI0f9NGkIIR7QjvZMY")
 client = berserk.Client(session=session)
 board = [[" " for x in range(8)] for y in range(8)]
 piece_list = ["R", "N", "B", "Q", "P"]
+stockfish_path = "/opt/homebrew/bin/stockfish"
 
+def get_legal_moves(fen):
+    board = chess.Board(fen)
+    legal_moves = [move.uci() for move in board.legal_moves]
+    return legal_moves
+
+def make_random_move(fen):
+    legal_moves = get_legal_moves(fen)
+    if not legal_moves:
+        return fen, None  # No legal moves available
+
+    random_move = random.choice(legal_moves)
+    board = chess.Board(fen)
+    board.push_uci(random_move)
+    updated_fen = board.fen()
+    return updated_fen, random_move
+
+def get_top_moves(fen, depth=5, stockfish_path="stockfish"):
+    # Create a chess.Board from the FEN
+    board = chess.Board(fen)
+
+    # Set up the Stockfish engine
+    stockfish = chess.engine.SimpleEngine.popen_uci(stockfish_path)
+
+    try:
+        # Play the board position with Stockfish and get the analysis
+        info = stockfish.analyse(board, chess.engine.Limit(depth=depth))
+
+        # Get the best move from the analysis
+        best_move = info["pv"][0]
+
+        # Get the top moves as a list of SAN (Standard Algebraic Notation) strings
+        top_moves = [move.uci() for move in info["pv"]]
+
+        return top_moves, best_move
+    finally:
+        # Ensure to close the engine after use
+        stockfish.quit()
 
 def get_moves_to_fen(initial_fen, target_fen):
     initial_board = chess.Board(initial_fen)
@@ -107,10 +146,10 @@ def start():
     fen = fen_from_board(board)
     print("Random FEN:", fen)
     initial_fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
+    print(get_top_moves(fen, 3, stockfish_path))
+    updated_fen, random_move = make_random_move(fen)
+    print(updated_fen)
+    print(random_move)
     save_board_image_as_png(fen, "original")
-    moves_to_target = get_moves_to_fen(initial_fen, fen)
-    for move in moves_to_target:
-        print(move.uci())
-
 #entry point
 start()
