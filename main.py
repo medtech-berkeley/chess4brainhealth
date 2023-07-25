@@ -4,6 +4,7 @@ import berserk
 from stockfish import Stockfish
 import chess
 import chess.engine
+import pandas as pd
 
 
 session = berserk.TokenSession("lip_RkiI0f9NGkIIR7QjvZMY")
@@ -145,11 +146,16 @@ def start():
     populate_board(board, piece_amount_white, piece_amount_black)
     fen = fen_from_board(board)
     print("Random FEN:", fen)
-    initial_fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
-    print(get_top_moves(fen, 3, stockfish_path))
-    updated_fen, random_move = make_random_move(fen)
-    print(updated_fen)
-    print(random_move)
-    save_board_image_as_png(fen, "original")
+    df_filtered = pd.read_csv("lichess_db_puzzle_filtered7.csv")
+    random_row = random.choice(df_filtered.index)
+    initial_fen = df_filtered.loc[random_row, "col1"]
+
+    board2 = chess.Board(initial_fen)
+
+    # Determine whose turn it is (White or Black)
+    move_turn = "White" if board2.turn == chess.WHITE else "Black"
+    print(move_turn, "to move")
+
+    save_board_image_as_png(initial_fen, "hi")
 #entry point
 start()
