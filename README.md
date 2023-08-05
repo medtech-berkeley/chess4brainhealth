@@ -1,4 +1,4 @@
-# FEN-To-Board-Imge
+FEN-To-Board-Imge
 
 Requirements:
 - PIL
@@ -7,10 +7,12 @@ Requirements:
 
 Download both using pip
 
+Creates random chess position pngs.
+
 A couple comments:
 - The get_top_moves method might display this error: chess.engine.EngineTerminatedError: engine event loop dead. If that is the case, lower the engine depth and retry.
 
-#pygame-chess
+Pygame-Chess
 
 Requirements:
 - Python 3.9
