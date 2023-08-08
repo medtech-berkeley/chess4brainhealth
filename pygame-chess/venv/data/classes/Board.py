@@ -162,10 +162,61 @@ class Board:
             if self.is_in_check(color):
                 output = True
         return output
-    def draw(self, display):
+
+    def calculate_piece_differential(fen):
+        piece_values = {'Q': 9, 'R': 5, 'B': 3, 'N': 3, 'P': 1,
+                        'q': -9, 'r': -5, 'b': -3, 'n': -3, 'p': -1}
+
+        fen_parts = fen.split(' ')
+        position_part = fen_parts[0]
+
+        white_value = 0
+        black_value = 0
+
+        for char in position_part:
+            if char in piece_values:
+                if char.isupper():
+                    white_value += piece_values[char]
+                else:
+                    black_value += piece_values[char]
+
+        piece_differential = white_value + black_value
+        return piece_differential
+    def drawScore(self, display, score):
+        font = pygame.font.Font(None, 30)
+        timer_text = font.render(f"Point Differential: {score}", True, (0, 0, 0))  # White color
+        timer_rect = timer_text.get_rect(topleft=(10, 10))
+        display.blit(timer_text, timer_rect)
+    def drawTimer(self, display, remaining_time):
+        font = pygame.font.Font(None, 30)
+        timer_text = font.render(f"Time: {remaining_time:.1f}", True, (0, 0, 0))  # White color
+        timer_rect = timer_text.get_rect(topright=(self.width - 10, 10))
+        display.blit(timer_text, timer_rect)
+    def drawEvaluation(self, display, evaluation):
+        font = pygame.font.Font(None, 30)
+        timer_text = font.render(f"Evaluation: {evaluation}", True, (0, 0, 0))  # White color
+        timer_rect = timer_text.get_rect(topright=(450, 10))
+        display.blit(timer_text, timer_rect)
+    def draw(self, display, remaining_time, score, evaluation):
+        board_width = int(self.width * 18 / 20)
+        board_height = int(self.height * 18 / 20)
+
+        # Calculate the starting position to center the board
+        start_x = (self.width - board_width) // 2
+        start_y = (self.height - board_height) // 2
+
+        # Calculate tile dimensions for the resized board
+        tile_width = board_width // 8
+        tile_height = board_height // 8
+
+        # Draw the board background
+        pygame.draw.rect(display, (0, 0, 0), (start_x, start_y, board_width, board_height))
         if self.selected_piece is not None:
             self.get_square_from_pos(self.selected_piece.pos).highlight = True
             for square in self.selected_piece.get_valid_moves(self):
                 square.highlight = True
         for square in self.squares:
-            square.draw(display)
+            square.draw(display, start_x, start_y, tile_width, tile_height)
+        self.drawTimer(display, remaining_time)
+        self.drawScore(display, score)
+        self.drawEvaluation(display, evaluation)
