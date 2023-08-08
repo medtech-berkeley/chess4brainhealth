@@ -30,14 +30,20 @@ class Square:
         columns = 'abcdefgh'
         return columns[self.x] + str(self.y + 1)
 
-    def draw(self, display):
+    def draw(self, display, start_x, start_y, tile_width, tile_height):
+        # Calculate the absolute position of the square on the resized board
+        self.abs_x = start_x + self.x * tile_width
+        self.abs_y = start_y + self.y * tile_height
+        self.rect = pygame.Rect(self.abs_x, self.abs_y, tile_width, tile_height)
+
         # configures if tile should be light or dark or highlighted tile
         if self.highlight:
             pygame.draw.rect(display, self.highlight_color, self.rect)
         else:
             pygame.draw.rect(display, self.draw_color, self.rect)
+
         # adds the chess piece icons
-        if self.occupying_piece != None:
+        if self.occupying_piece is not None:
             centering_rect = self.occupying_piece.img.get_rect()
             centering_rect.center = self.rect.center
             display.blit(self.occupying_piece.img, centering_rect.topleft)
