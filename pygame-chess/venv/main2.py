@@ -13,7 +13,7 @@ screen = pygame.display.set_mode(WINDOW_SIZE)
 screen2 = pygame.display.set_mode(WINDOW_SIZE)
 screen3 = pygame.display.set_mode(WINDOW_SIZE)
 screen4 = pygame.display.set_mode(WINDOW_SIZE)
-csv_path = "/Users/abhinavgoel/gitfolder/pygame-chess-clone/train.csv"
+csv_path = "file/path/for/train.csv"
 
 # Read the CSV file
 df_filtered = pd.read_csv(csv_path)
