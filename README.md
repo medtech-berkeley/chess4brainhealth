@@ -25,3 +25,6 @@ Requirements:
 - pygame (download using pip)
 
 Generator for over 25k mate-in-1 puzzles. Run main2.py in the pygame-chess folder to generate puzzles.
+
+Comments:
+- In main2.py, change the path_to_csv variable to the path to train.csv.
