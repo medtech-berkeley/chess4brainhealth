@@ -8,6 +8,8 @@ from data.classes.pieces.Knight import Knight
 from data.classes.pieces.Queen import Queen
 from data.classes.pieces.King import King
 from data.classes.pieces.Pawn import Pawn
+import pandas as pd
+import time
 
 # Game state checker
 class Board:
@@ -101,7 +103,8 @@ class Board:
                             (x, y), 'white' if piece[0] == 'w' else 'black', self
                         )
     def handle_click(self, mx, my):
-        x = mx // self.tile_width
+        adjusted_tile_width = (self.width - 500) // 8
+        x = mx // adjusted_tile_width
         y = my // self.tile_height
         clicked_square = self.get_square_from_pos((x, y))
         if self.selected_piece is None:
@@ -190,14 +193,14 @@ class Board:
     def drawTimer(self, display, remaining_time):
         font = pygame.font.Font(None, 30)
         timer_text = font.render(f"Time: {remaining_time:.1f}", True, (0, 0, 0))  # White color
-        timer_rect = timer_text.get_rect(topright=(self.width - 10, 10))
+        timer_rect = timer_text.get_rect(topright=(self.width - 600 - 10, 10))
         display.blit(timer_text, timer_rect)
     def drawEvaluation(self, display, evaluation):
         font = pygame.font.Font(None, 30)
         timer_text = font.render(f"Evaluation: {evaluation}", True, (0, 0, 0))  # White color
         timer_rect = timer_text.get_rect(topright=(450, 10))
         display.blit(timer_text, timer_rect)
-    def draw(self, display, remaining_time, score, evaluation):
+    def draw(self, display, remaining_time, score, evaluation, resting_heart, norm_heart, sd_norm_heart):
         board_width = int(self.width * 18 / 20)
         board_height = int(self.height * 18 / 20)
 
@@ -206,7 +209,7 @@ class Board:
         start_y = (self.height - board_height) // 2
 
         # Calculate tile dimensions for the resized board
-        tile_width = board_width // 8
+        tile_width = ((board_width - 500) // 8)
         tile_height = board_height // 8
 
         # Draw the board background
@@ -220,3 +223,25 @@ class Board:
         self.drawTimer(display, remaining_time)
         self.drawScore(display, score)
         self.drawEvaluation(display, evaluation)
+        self.drawBiometrics(display, resting_heart, norm_heart, sd_norm_heart)
+    def drawBiometrics(self, display, blood_O2, max_heart_rate, most_common_value):
+        font = pygame.font.Font(None, 30)
+        if(most_common_value == "InBed"):
+            most_common_value = "NREM"
+
+        biometric_text_rest = f"Blood Oxygen Levels: {blood_O2}"
+        biometric_text_norm = f"Max Heart Ratet: {max_heart_rate}"
+        biometric_text_sd = f"Most Common Sleep Form: {most_common_value}"
+
+        biometric_rest_rendered = font.render(biometric_text_rest, True, (255, 255, 255))
+        biometric_norm_rendered = font.render(biometric_text_norm, True, (255, 255, 255))
+        biometric_sd_rendered = font.render(biometric_text_sd, True, (255, 255, 255))
+
+        biometric_rest_rect = biometric_rest_rendered.get_rect(bottomleft=(700, 200))
+        display.blit(biometric_rest_rendered, biometric_rest_rect)
+
+        biometric_norm_rect = biometric_norm_rendered.get_rect(bottomleft=(700, 300))
+        display.blit(biometric_norm_rendered, biometric_norm_rect)
+
+        biometric_sd_rect = biometric_sd_rendered.get_rect(bottomleft=(700, 400))
+        display.blit(biometric_sd_rendered, biometric_sd_rect)
