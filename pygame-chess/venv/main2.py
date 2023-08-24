@@ -8,12 +8,48 @@ import time
 
 pygame.init()
 
-WINDOW_SIZE = (600, 600)
+# Read the original CSV file
+input_csv = "/Users/abhinavgoel/chess4brainhealth/Health Data.csv"
+output_csv = "Filtered Health Data.csv"
+
+# List of columns to keep
+columns_to_keep = [
+    "Blood Oxygen Saturation (%)",
+    "Heart Rate [Max] (count/min)"
+]
+
+# Read the CSV file into a DataFrame
+data = pd.read_csv(input_csv)
+
+# Select only the desired columns
+filtered_data = data[columns_to_keep]
+
+filtered_data = filtered_data.dropna()
+
+# Save the filtered data to a new CSV file
+filtered_data.to_csv(output_csv, index=False)
+
+sleep_input_csv = "/Users/abhinavgoel/chess4brainhealth/Sleep Analysis Data.csv"
+
+# Read the CSV file into a DataFrame
+sleep_data = pd.read_csv(sleep_input_csv)
+
+# Keep only the "Value" column
+value_column = sleep_data["Value"]
+
+# Count instances of different values
+value_counts = value_column.value_counts()
+
+# Find the value with the most instances
+most_common_value = value_counts.idxmax()
+most_common_value_count = value_counts.max()
+
+WINDOW_SIZE = (1200, 600)
 screen = pygame.display.set_mode(WINDOW_SIZE)
 screen2 = pygame.display.set_mode(WINDOW_SIZE)
 screen3 = pygame.display.set_mode(WINDOW_SIZE)
 screen4 = pygame.display.set_mode(WINDOW_SIZE)
-csv_path = "file/path/for/train.csv"
+csv_path = "/Users/abhinavgoel/chess4brainhealth/train.csv"
 
 # Read the CSV file
 df_filtered = pd.read_csv(csv_path)
@@ -34,9 +70,9 @@ board2 = StartEnd(WINDOW_SIZE[0], WINDOW_SIZE[1])
 board3 = StartEnd(WINDOW_SIZE[0], WINDOW_SIZE[1])
 board4 = StartEnd(WINDOW_SIZE[0], WINDOW_SIZE[1])
 
-def draw(display, remaining_time, score, evaluation):
+def draw(display, remaining_time, score, evaluation, blood_O2, max_heart_rate, most_common_value):
 	display.fill('white')
-	board.draw(display, remaining_time, score, evaluation)
+	board.draw(display, remaining_time, score, evaluation, blood_O2, max_heart_rate, most_common_value)
 	pygame.display.update()
 def draw2(display):
 	display.fill('black')
@@ -50,6 +86,13 @@ def draw4(display, winner):
 	display.fill('black')
 	board4.endDraw(display, winner)
 	pygame.display.update()
+def getBiometrics(path, index):
+	biometric_data = pd.read_csv(path)
+	num_rows = len(biometric_data)
+	blood_O2 = biometric_data.at[index, "Blood Oxygen Saturation (%)"]
+	max_heart_rate = biometric_data.at[index, "Heart Rate [Max] (count/min)"]
+	return blood_O2, max_heart_rate
+
 
 
 def calculate_piece_differential(fen):
@@ -95,6 +138,10 @@ if __name__ == '__main__':
 	elapsed_time3 = 0
 	timer_duration = 15
 	evaluation = "M1"
+	path = "/Users/abhinavgoel/chess4brainhealth/Filtered Health Data.csv"
+	index = 0
+	biometric1, biometric2 = getBiometrics(path, index)
+	last_biometric_update_time = start_time
 
 	while running:
 		# Calculate elapsed time
@@ -105,7 +152,12 @@ if __name__ == '__main__':
 		else:
 			running2 = False  # Stop displaying screen2
 			remaining_time = max(timer_duration - elapsed_time, 0)  # Calculate remaining time
-			draw(screen, remaining_time, score, evaluation)
+			remaining_time2 = 1
+			if time.time() - last_biometric_update_time >= 1:
+				index = index + 1
+				biometric1, biometric2 = getBiometrics(path, index)
+				last_biometric_update_time = time.time()  # Update the last update time
+			draw(screen, remaining_time, score, evaluation, biometric1, biometric2, most_common_value)
 			if remaining_time == 0:
 				running = False
 				start_time2 = time.time()
