@@ -5,6 +5,12 @@ import os
 from data.classes.Board import Board
 from data.classes.StartEnd import StartEnd
 import time
+import torch
+import torch.nn as nn
+import torch.optim as optim
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import LabelEncoder, MinMaxScaler
+from main3 import sleepFEN
 
 pygame.init()
 
@@ -54,7 +60,7 @@ csv_path = "/Users/abhinavgoel/chess4brainhealth/train.csv"
 # Read the CSV file
 df_filtered = pd.read_csv(csv_path)
 random_row = random.choice(df_filtered.index)
-initial_fen = df_filtered.loc[random_row, "fen"]
+initial_fen, timer_total = sleepFEN()
 print(initial_fen)
 
 # Determine whose turn it is (White or Black)
@@ -92,9 +98,28 @@ def getBiometrics(path, index):
 	blood_O2 = biometric_data.at[index, "Blood Oxygen Saturation (%)"]
 	max_heart_rate = biometric_data.at[index, "Heart Rate [Max] (count/min)"]
 	return blood_O2, max_heart_rate
+def fenCounter(fen):
+	parts = fen.split(' ')
 
+	# Extract the board section from the FEN
+	board = parts[0]
 
+	# Initialize a counter for empty spaces
+	empty_space_count = 0
 
+	# Iterate through the board section and count empty spaces
+	for char in board:
+		if char.isdigit():
+			# If the character is a digit, it represents empty squares
+			empty_space_count += int(char)
+		elif char == '/':
+			# Ignore the '/' characters, which separate ranks
+			pass
+		else:
+			# If the character is not a digit or '/', it represents a piece on the board
+			empty_space_count += 1
+
+	return empty_space_count
 def calculate_piece_differential(fen):
 	piece_values = {'Q': 9, 'R': 5, 'B': 3, 'N': 3, 'P': 1,
 					'q': -9, 'r': -5, 'b': -3, 'n': -3, 'p': -1}
@@ -136,17 +161,16 @@ if __name__ == '__main__':
 	elapsed_time = 0  # Initialize elapsed time
 	elapsed_time2 = 0
 	elapsed_time3 = 0
-	timer_duration = 15
 	evaluation = "M1"
 	path = "/Users/abhinavgoel/chess4brainhealth/Filtered Health Data.csv"
 	index = 0
+	timer_duration = 200
 	biometric1, biometric2 = getBiometrics(path, index)
 	last_biometric_update_time = start_time
 
 	while running:
 		# Calculate elapsed time
 		elapsed_time = time.time() - start_time
-
 		if running2 and elapsed_time < 5:
 			draw2(screen2)  # Display screen2
 		else:
